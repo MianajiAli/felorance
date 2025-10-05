@@ -1,15 +1,20 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from django.utils import timezone
 import random
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
+
 from .models import CustomUser
 from .serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 
 
+# ------------------------
+# Helper: generate JWT tokens
+# ------------------------
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -30,10 +35,19 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         tokens = get_tokens_for_user(user)
-        return Response(
+        response = Response(
             {"user": UserSerializer(user).data, "tokens": tokens},
             status=status.HTTP_201_CREATED,
         )
+        # Set refresh token in httpOnly cookie
+        response.set_cookie(
+            key="refresh_token",
+            value=tokens["refresh"],
+            httponly=True,
+            secure=False,  # True in production with HTTPS
+            samesite="Strict",
+        )
+        return response
 
 
 # ------------------------
@@ -80,7 +94,18 @@ class UserLoginView(generics.GenericAPIView):
             )
 
         tokens = get_tokens_for_user(user)
-        return Response({"user": UserSerializer(user).data, "tokens": tokens})
+        response = Response(
+            {"user": UserSerializer(user).data, "tokens": tokens},
+            status=status.HTTP_200_OK,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=tokens["refresh"],
+            httponly=True,
+            secure=False,
+            samesite="Strict",
+        )
+        return response
 
 
 # ------------------------
@@ -108,3 +133,45 @@ class SendOTPView(generics.GenericAPIView):
         print(f"OTP for {mobile}: {otp}")  # Replace with SMS sending in production
 
         return Response({"detail": "OTP sent successfully"})
+
+
+# ------------------------
+# Refresh access token
+# ------------------------
+class RefreshTokenView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh = request.COOKIES.get("refresh_token")
+        if not refresh:
+            return Response({"detail": "No refresh token"}, status=401)
+        serializer = self.get_serializer(data={"refresh": refresh})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            return Response({"detail": "Invalid refresh token"}, status=401)
+        return Response(serializer.validated_data)
+
+
+# ------------------------
+# Logout
+# ------------------------
+from rest_framework.views import APIView
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        response = Response({"detail": "Logged out"}, status=status.HTTP_200_OK)
+        response.delete_cookie("refresh_token")
+        return response
+
+
+# ------------------------
+# /me endpoint
+# ------------------------
+class MeView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user

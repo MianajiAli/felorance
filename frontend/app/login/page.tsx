@@ -4,23 +4,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(username, password);
+    await login(mobile, password);
     // router.push("/checkout");
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
       <input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        placeholder="mobile"
+        value={mobile}
+        onChange={(e) => setMobile(e.target.value)}
       />
       <input
         type="password"

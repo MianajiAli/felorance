@@ -11,15 +11,16 @@ import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
-  username: string;
+  mobile: number;
   email: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (mobile: number, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  getAuthHeader: () => Promise<{ Authorization: string } | {}>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,12 +35,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const router = useRouter();
 
-  // Fetch /me using access token
+  // --------------------------
+  // Helper to read cookie
+  // --------------------------
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+    return null;
+  };
+
+  // --------------------------
+  // Fetch /me
+  // --------------------------
   const fetchUser = async (token?: string) => {
     if (!token) return setUser(null);
     try {
-      const res = await fetch("http://localhost:8000/api/accounts/me/", {
+      const res = await fetch("http://localhost:8000/api/auth/me/", {
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (!res.ok) return setUser(null);
       const data: User = await res.json();
@@ -49,15 +63,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // --------------------------
   // Refresh access token using refresh cookie
-  const refreshAccessToken = async () => {
+  // --------------------------
+  const refreshAccessToken = async (): Promise<string | null> => {
     try {
-      const res = await fetch("http://localhost:8000/api/token/refresh/", {
+      const refreshToken = getCookie("refresh_token");
+      if (!refreshToken) throw new Error("No refresh token");
+
+      const res = await fetch("http://localhost:8000/api/auth/refresh/", {
         method: "POST",
-        credentials: "include", // httpOnly refresh cookie
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: refreshToken }),
+        credentials: "include",
       });
-      if (!res.ok) throw new Error("Refresh failed");
+
+      if (!res.ok) {
+        setAccessToken(null);
+        setUser(null);
+        return null;
+      }
+
       const data = await res.json();
+      if (!data.access) throw new Error("No access token returned");
+
       setAccessToken(data.access);
       return data.access;
     } catch {
@@ -67,7 +96,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // --------------------------
+  // Helper for headers
+  // --------------------------
+  const getAuthHeader = async () => {
+    if (!accessToken) {
+      const token = await refreshAccessToken();
+      if (!token) return {};
+      return { Authorization: `Bearer ${token}` };
+    }
+    return { Authorization: `Bearer ${accessToken}` };
+  };
+
+  // --------------------------
   // Auto-login on mount
+  // --------------------------
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -78,31 +121,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     init();
   }, []);
 
+  // --------------------------
   // Login
-  const login = async (username: string, password: string) => {
+  // --------------------------
+  const login = async (mobile: number, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/accounts/login/", {
+      const res = await fetch("http://127.0.0.1:8000/api/auth/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-        credentials: "include", // refresh token stored in httpOnly cookie
+        body: JSON.stringify({ mobile, password }),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Invalid credentials");
+
       const data = await res.json();
-      setAccessToken(data.access);
-      await fetchUser(data.access);
+      setAccessToken(data.tokens?.access || data.access);
+      await fetchUser(data.tokens?.access || data.access);
       router.push("/");
     } finally {
       setLoading(false);
     }
   };
 
+  // --------------------------
   // Logout
+  // --------------------------
   const logout = async () => {
     setLoading(true);
     try {
-      await fetch("http://localhost:8000/api/accounts/logout/", {
+      await fetch("http://localhost:8000/api/auth/logout/", {
         method: "POST",
         credentials: "include",
       });
@@ -115,7 +163,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, getAuthHeader }}
+    >
       {children}
     </AuthContext.Provider>
   );
