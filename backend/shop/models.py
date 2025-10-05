@@ -9,7 +9,12 @@ class Product(models.Model):
     description = models.TextField(
         blank=True, help_text="MDX content (Markdown + JSX)."
     )
-    weight = models.FloatField(blank=True, help_text="Weight in grams (e.g., 0.120).")
+    weight = models.FloatField(
+        blank=True,
+        null=True,
+        default=0,
+        help_text="Weight in grams (e.g., 0.120).",
+    )
     purity = models.DecimalField(
         max_digits=5,
         decimal_places=2,

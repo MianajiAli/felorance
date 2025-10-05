@@ -4,31 +4,42 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [mobile, setMobile] = useState("");
+  const [mobile, setMobile] = useState<number | "">(""); // number or empty string
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await login(mobile, password);
+    if (mobile === "") return alert("Mobile is required");
+
+    // Convert mobile to number if it's not already
+    await login(Number(mobile), password);
     // router.push("/checkout");
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
       <input
-        placeholder="mobile"
+        type="number"
+        placeholder="Mobile"
         value={mobile}
-        onChange={(e) => setMobile(e.target.value)}
+        onChange={(e) =>
+          setMobile(e.target.value === "" ? "" : Number(e.target.value))
+        }
+        className="border p-2 rounded"
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        className="border p-2 rounded"
       />
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2">
+      <button
+        type="submit"
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
         Login
       </button>
     </form>
