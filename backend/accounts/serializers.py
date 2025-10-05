@@ -39,3 +39,10 @@ class UserLoginSerializer(serializers.Serializer):
         if not data.get("password") and not data.get("otp"):
             raise serializers.ValidationError("Either password or OTP is required")
         return data
+
+
+# ------------------------
+# Serializer for SendOTPView
+# ------------------------
+class SendOTPSerializer(serializers.Serializer):
+    mobile = serializers.CharField(max_length=15)
