@@ -1,15 +1,20 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from django.utils import timezone
 import random
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .models import CustomUser
-from .serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
+from .serializers import (
+    UserSerializer,
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+    SendOTPSerializer,  # added serializer for OTP
+)
 
 
 # ------------------------
@@ -67,7 +72,8 @@ class UserLoginView(generics.GenericAPIView):
             user = CustomUser.objects.get(mobile=mobile)
         except CustomUser.DoesNotExist:
             return Response(
-                {"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         if password:
@@ -112,27 +118,30 @@ class UserLoginView(generics.GenericAPIView):
 # Send OTP
 # ------------------------
 class SendOTPView(generics.GenericAPIView):
+    serializer_class = SendOTPSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        mobile = request.data.get("mobile")
-        if not mobile:
-            return Response(
-                {"detail": "Mobile is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        mobile = serializer.validated_data["mobile"]
 
         try:
             user = CustomUser.objects.get(mobile=mobile)
         except CustomUser.DoesNotExist:
             return Response(
-                {"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         otp = str(random.randint(100000, 999999))
         user.generate_otp(code=otp)
-        print(f"OTP for {mobile}: {otp}")  # Replace with SMS sending in production
+        print(f"OTP for {mobile}: {otp}")  # replace this with actual SMS sending
 
-        return Response({"detail": "OTP sent successfully"})
+        return Response(
+            {"detail": "OTP sent successfully"},
+            status=status.HTTP_200_OK,
+        )
 
 
 # ------------------------
@@ -154,9 +163,6 @@ class RefreshTokenView(TokenRefreshView):
 # ------------------------
 # Logout
 # ------------------------
-from rest_framework.views import APIView
-
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
