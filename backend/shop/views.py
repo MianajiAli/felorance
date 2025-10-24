@@ -5,10 +5,7 @@ from .serializers import ProductSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_active=True).prefetch_related("images")
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "slug"
-
-    def get_queryset(self):
-        return Product.objects.filter(is_active=True)
