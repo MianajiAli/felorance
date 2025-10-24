@@ -1,4 +1,3 @@
-# serializers.py
 from rest_framework import serializers
 from .models import Post
 
@@ -25,10 +24,31 @@ class PostSerializer(serializers.ModelSerializer):
         ]
 
     def get_header_image_url(self, obj):
-        return obj.header_image.url if obj.header_image else None
+        request = self.context.get("request")
+        if obj.header_image:
+            return (
+                request.build_absolute_uri(obj.header_image.url)
+                if request
+                else obj.header_image.url
+            )
+        return None
 
     def get_thumbnail_url(self, obj):
-        return obj.thumbnail.url if obj.thumbnail else None
+        request = self.context.get("request")
+        if obj.thumbnail:
+            return (
+                request.build_absolute_uri(obj.thumbnail.url)
+                if request
+                else obj.thumbnail.url
+            )
+        return None
 
     def get_og_image_url(self, obj):
-        return obj.og_image.url if obj.og_image else None
+        request = self.context.get("request")
+        if obj.og_image:
+            return (
+                request.build_absolute_uri(obj.og_image.url)
+                if request
+                else obj.og_image.url
+            )
+        return None

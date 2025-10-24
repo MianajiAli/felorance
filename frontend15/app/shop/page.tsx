@@ -1,5 +1,7 @@
-import React from "react";
+// app/shop/page.tsx
 import Link from "next/link";
+import Image from "next/image";
+import Pagination from "@/components/Pagination";
 
 export interface ProductImage {
   id: number;
@@ -22,27 +24,40 @@ export interface Product {
   images: ProductImage[];
 }
 
-const fetchProducts = async (): Promise<Product[]> => {
-  const res = await fetch("http://127.0.0.1:8000/api/products/", {
-    next: { revalidate: 10 },
+interface ProductResponse {
+  results: Product[];
+  count: number;
+}
+
+// Fetch products from API
+async function fetchProducts(page: number): Promise<ProductResponse> {
+  const res = await fetch(`http://127.0.0.1:8000/api/products/?page=${page}`, {
+    cache: "no-store",
   });
 
-  if (!res.ok) {
-    throw new Error(`خطا در دریافت محصولات: ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`خطا در دریافت محصولات: ${res.status}`);
 
-  const data: { results?: Product[] } = await res.json();
-  return data.results || [];
-};
+  return res.json();
+}
 
-const Page = async () => {
-  let products: Product[] = [];
+// Server component
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const page = Number(params?.page ?? 1);
 
+  let data: ProductResponse = { results: [], count: 0 };
   try {
-    products = await fetchProducts();
+    data = await fetchProducts(page);
   } catch (error) {
     console.error("خطا در دریافت محصولات:", error);
   }
+
+  const products = data.results || [];
+  const totalPages = Math.ceil((data.count || 0) / 10);
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -58,7 +73,11 @@ const Page = async () => {
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => {
-              const firstImage = product.images?.[0]?.image || null;
+              const firstImage = product.images?.[0]?.image
+                ? product.images[0].image.startsWith("http")
+                  ? product.images[0].image
+                  : `http://127.0.0.1:8000${product.images[0].image}`
+                : null;
 
               return (
                 <Link
@@ -66,12 +85,14 @@ const Page = async () => {
                   href={`/shop/${product.slug}`}
                   className="group bg-white rounded-3xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-gray-200 overflow-hidden flex flex-col"
                 >
-                  <div className="w-full h-56 relative">
+                  <div className="relative w-full h-56">
                     {firstImage ? (
-                      <img
+                      <Image
                         src={firstImage}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-lg">
@@ -114,9 +135,17 @@ const Page = async () => {
             })}
           </div>
         )}
+
+        {totalPages > 1 && (
+          <div className="mt-10">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              basePath="/shop"
+            />
+          </div>
+        )}
       </div>
     </main>
   );
-};
-
-export default Page;
+}
