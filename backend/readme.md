@@ -82,6 +82,31 @@ Response:
 | created_at  | datetime | Auto                     |
 | updated_at  | datetime | Auto                     |
 
+## Cart Endpoints (`/cart/`, `/cart-items/`)
+
+| Endpoint           | Method | Description                       |
+| ------------------ | ------ | --------------------------------- |
+| `/cart/`           | GET    | Retrieve current user cart        |
+| `/cart-items/`     | POST   | Add item to cart                  |
+| `/cart-items/{id}/`| PATCH  | Update item quantity              |
+| `/cart-items/{id}/`| DELETE | Remove item from cart             |
+
+## Order Endpoints (`/orders/`)
+
+| Endpoint           | Method | Description                          |
+| ------------------ | ------ | ------------------------------------ |
+| `/orders/`         | GET    | List orders (admin sees all orders)  |
+| `/orders/`         | POST   | Create order from current cart       |
+| `/orders/{id}/`    | GET    | Retrieve order details               |
+
+## Payment Endpoints (`/payments/`)
+
+| Endpoint           | Method | Description                         |
+| ------------------ | ------ | ----------------------------------- |
+| `/payments/`       | GET    | List payments for current user      |
+| `/payments/`       | POST   | Create payment for an order         |
+| `/payments/{id}/`  | GET    | Retrieve a payment record           |
+
 ## Post Endpoints (`/posts/`)
 
 | Endpoint         | Method | Description     |
@@ -187,9 +212,23 @@ http://127.0.0.1:8000/swagger/
 ## Roadmap
 
 * Add product categories
-* Implement cart & order system
+* Add shipping address book + saved payment methods
+* Add promotions, discounts, and gift cards
+* Add shipping rate calculators + tax integrations
 * Add image upload (S3/Cloudinary)
 * Admin dashboard with analytics
+
+## Full Store Endpoint Checklist
+
+The following endpoints represent the minimum surface area needed for a complete store:
+
+1. **Catalog** — products, variants, inventory, images.
+2. **Cart** — add/remove items, adjust quantities, apply discounts.
+3. **Checkout** — shipping address, delivery method, tax + shipping rate.
+4. **Orders** — order placement, order history, fulfillment status.
+5. **Payments** — payment intents, capture/refund status.
+6. **Customer** — profile, addresses, loyalty/wishlist.
+7. **Admin** — inventory updates, order management, reporting.
 
 ## License
 
