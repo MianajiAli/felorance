@@ -1,91 +1,93 @@
-// Header.tsx (Server Component)
-import React from "react";
-import MobileMenuButton from "./MobileMenuButton"; // Assuming you put the client component in the same directory
+"use client";
 
-// 1. Define the TypeScript interface for our navigation items
+import Link from "next/link";
+import MobileMenuButton from "./MobileMenuButton";
+import { useSettings } from "./SettingsProvider";
+
 interface NavItem {
-  title: string;
-  english_title: string;
+  label: string;
   href: string;
 }
 
-// 2. The JSON data for the Persian Silver Shop Menu
-// This data is static and can live on the server
-const navItems: NavItem[] = [
-  { title: "نقره‌جات", english_title: "Silverware", href: "/silverware" },
-  { title: "جواهرات", english_title: "Jewelry", href: "/jewelry" },
-  { title: "کلکسیون‌ها", english_title: "Collections", href: "/collections" },
-  { title: "درباره ما", english_title: "About Us", href: "/about" },
-  { title: "تماس با ما", english_title: "Contact Us", href: "/contact" },
-];
+const navItems = (language: "fa" | "en"): NavItem[] => {
+  if (language === "fa") {
+    return [
+      { label: "کالکشن‌ها", href: "/#collections" },
+      { label: "جدیدترین‌ها", href: "/#new-arrivals" },
+      { label: "پرفروش‌ها", href: "/#best-sellers" },
+      { label: "وبلاگ", href: "/blog" },
+      { label: "تماس", href: "/#contact" },
+    ];
+  }
 
-// Header is now a Server Component
-const Header: React.FC = () => {
+  return [
+    { label: "Collections", href: "/#collections" },
+    { label: "New Arrivals", href: "/#new-arrivals" },
+    { label: "Best Sellers", href: "/#best-sellers" },
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/#contact" },
+  ];
+};
+
+const Header = () => {
+  const { language, setLanguage, theme, toggleTheme } = useSettings();
+  const items = navItems(language);
+
   return (
-    // Set the direction to Right-to-Left (RTL) for Persian
-    // The 'relative' class is important here to correctly position the absolute mobile menu
-    <header className="bg-white shadow-xl sticky top-0 z-40 relative" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Desktop/Main Navigation Bar */}
-        <div className="flex justify-between items-center h-20">
-          {/* 1. Logo and Shop Name (Right Side in RTL) */}
-          <div className="flex-shrink-0">
-            <a href="/" className="flex items-center space-x-2 space-x-reverse">
-              <span className="text-3xl font-extrabold text-gray-800">
-                نقره‌فروشی دُرّ
-              </span>
-              <span className="text-xs text-gray-500 mr-2 border-r pr-2 hidden sm:inline">
-                اصالت و زیبایی
-              </span>
-            </a>
-          </div>
-
-          {/* 2. Primary Navigation (Center) - Hidden on Mobile */}
-          <nav className="hidden md:block">
-            <div className="flex space-x-6 space-x-reverse text-lg font-medium">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-900 pb-1 transition duration-150"
-                >
-                  {item.title}
-                </a>
-              ))}
-            </div>
-          </nav>
-
-          {/* 3. Utility/Action Buttons (Left Side in RTL) */}
-          <div className="flex items-center space-x-4 space-x-reverse">
-            {/* Utility Icons: Search, Account, Cart (Static part) */}
-            <button className="p-2 text-gray-700 hover:text-gray-900 rounded-full hover:bg-gray-100 transition duration-150">
-              <span className="sr-only">جستجو</span>
-              <span className="text-xl">🔍</span>
-            </button>
-
-            <a
-              href="/account"
-              className="p-2 text-gray-700 hover:text-gray-900 rounded-full hover:bg-gray-100 transition duration-150"
-            >
-              <span className="sr-only">ورود / ثبت‌نام</span>
-              <span className="text-xl">👤</span>
-            </a>
-
-            <a
-              href="/cart"
-              className="relative p-2 text-gray-700 hover:text-gray-900 rounded-full hover:bg-gray-100 transition duration-150"
-            >
-              <span className="sr-only">سبد خرید</span>
-              <span className="text-xl">🛒</span>
-              <span className="absolute top-0 left-0 -mt-1 -mr-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full leading-none">
-                3
-              </span>
-            </a>
-
-            {/* Mobile Menu Button/Menu - RENDERED AS A CLIENT COMPONENT */}
-            <MobileMenuButton navItems={navItems} />
+    <header className="sticky top-0 z-40 w-full border-b border-subtle bg-[var(--surface)]/80 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 via-rose-400 to-purple-500 text-lg font-bold text-white">
+            F
+          </span>
+          <div>
+            <Link href="/" className="text-lg font-semibold text-[var(--foreground)]">
+              {language === "fa" ? "فلورنس" : "Felorance"}
+            </Link>
+            <p className="text-xs text-muted">
+              {language === "fa" ? "استودیو نقره و سنگ‌های قیمتی" : "Modern silver & gemstone studio"}
+            </p>
           </div>
         </div>
+
+        <nav className="hidden items-center gap-8 text-sm font-medium text-muted md:flex">
+          {items.map((item) => (
+            <Link key={item.href} href={item.href} className="transition hover:text-[var(--foreground)]">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="rounded-full border border-subtle px-4 py-2 text-xs font-semibold text-muted transition hover:text-[var(--foreground)]"
+          >
+            {theme === "light" ? (language === "fa" ? "حالت تیره" : "Dark mode") : language === "fa" ? "حالت روشن" : "Light mode"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "fa" ? "en" : "fa")}
+            className="rounded-full border border-subtle px-4 py-2 text-xs font-semibold text-muted"
+          >
+            {language === "fa" ? "English" : "فارسی"}
+          </button>
+          <Link
+            href="/auth/sign-in"
+            className="rounded-full border border-subtle px-4 py-2 text-sm font-semibold text-muted transition hover:text-[var(--foreground)]"
+          >
+            {language === "fa" ? "ورود" : "Sign in"}
+          </Link>
+          <Link
+            href="/auth/sign-up"
+            className="rounded-full bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--background)] transition"
+          >
+            {language === "fa" ? "ثبت‌نام" : "Create account"}
+          </Link>
+        </div>
+
+        <MobileMenuButton navItems={items} />
       </div>
     </header>
   );
