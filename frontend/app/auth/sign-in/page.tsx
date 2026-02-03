@@ -1,9 +1,17 @@
-import SignInForm from "@/components/auth/SignInForm";
-import { getServerSettings } from "@/lib/server-settings";
+"use client";
 
-export default async function SignInPage() {
-  const { language } = await getServerSettings();
+import { useState } from "react";
+import { useSettings } from "@/components/SettingsProvider";
+
+export default function SignInPage() {
+  const { language } = useSettings();
   const isFa = language === "fa";
+  const [status, setStatus] = useState<string | null>(null);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus(isFa ? "ورود آزمایشی با موفقیت انجام شد." : "Auth test successful. Signed in (demo)." );
+  };
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-5xl items-center px-4 py-12 sm:px-6 lg:px-8">
@@ -18,7 +26,37 @@ export default async function SignInPage() {
               ? "به سفارش‌ها، علاقه‌مندی‌ها و جلسات استایلینگ دسترسی داشته باشید."
               : "Access your orders, wishlist, and private styling sessions in one place."}
           </p>
-          <SignInForm language={language} />
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted">
+                {isFa ? "ایمیل" : "Email address"}
+              </label>
+              <input
+                type="email"
+                placeholder={isFa ? "name@felorance.com" : "name@felorance.com"}
+                className="mt-2 w-full rounded-full border border-subtle px-4 py-3 text-sm"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted">
+                {isFa ? "رمز عبور" : "Password"}
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="mt-2 w-full rounded-full border border-subtle px-4 py-3 text-sm"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-[var(--background)]"
+            >
+              {isFa ? "ورود" : "Sign in"}
+            </button>
+          </form>
+          {status ? <p className="mt-4 text-xs text-emerald-500">{status}</p> : null}
           <p className="mt-6 text-xs text-muted">
             {isFa ? "حساب ندارید؟" : "Need access?"} 
             <a className="font-semibold text-[var(--foreground)]" href="/auth/sign-up">

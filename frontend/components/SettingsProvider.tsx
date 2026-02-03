@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Language, ThemeMode } from "@/lib/types";
+
+export type Language = "fa" | "en";
+export type ThemeMode = "light" | "dark";
 
 interface SettingsContextValue {
   language: Language;
@@ -20,28 +22,13 @@ const applySettingsToDocument = (language: Language, theme: ThemeMode) => {
   root.dataset.theme = theme;
 };
 
-const persistCookie = (key: string, value: string) => {
-  if (typeof document === "undefined") return;
-  document.cookie = `${key}=${value}; path=/; max-age=31536000`;
-};
-
-const safeStorage = () => {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-};
-
 export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguage] = useState<Language>("fa");
   const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    const storage = safeStorage();
-    const storedLanguage = storage?.getItem("felorance-language") as Language | null;
-    const storedTheme = storage?.getItem("felorance-theme") as ThemeMode | null;
+    const storedLanguage = window.localStorage.getItem("felorance-language") as Language | null;
+    const storedTheme = window.localStorage.getItem("felorance-theme") as ThemeMode | null;
 
     if (storedLanguage === "fa" || storedLanguage === "en") {
       setLanguage(storedLanguage);
@@ -52,11 +39,8 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
   }, []);
 
   useEffect(() => {
-    const storage = safeStorage();
-    storage?.setItem("felorance-language", language);
-    storage?.setItem("felorance-theme", theme);
-    persistCookie("felorance-language", language);
-    persistCookie("felorance-theme", theme);
+    window.localStorage.setItem("felorance-language", language);
+    window.localStorage.setItem("felorance-theme", theme);
     applySettingsToDocument(language, theme);
   }, [language, theme]);
 

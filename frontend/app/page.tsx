@@ -1,5 +1,6 @@
-import { formatPrice, getPosts, getProducts } from "@/lib/api";
-import { getServerSettings } from "@/lib/server-settings";
+"use client";
+
+import { useSettings } from "@/components/SettingsProvider";
 
 const collections = {
   fa: [
@@ -135,31 +136,9 @@ const journal = {
   ],
 };
 
-export default async function Home() {
-  const { language } = await getServerSettings();
+export default function Home() {
+  const { language } = useSettings();
   const isFa = language === "fa";
-  const [apiProducts, apiPosts] = await Promise.all([
-    getProducts().catch(() => []),
-    getPosts().catch(() => []),
-  ]);
-
-  const featuredProducts =
-    apiProducts.length > 0
-      ? apiProducts.slice(0, 3).map((product) => ({
-          title: product.name,
-          price: formatPrice(product.price, language, product.currency),
-          detail: product.description || product.material,
-        }))
-      : products[language];
-
-  const latestJournal =
-    apiPosts.length > 0
-      ? apiPosts.slice(0, 3).map((post) => ({
-          title: post.title,
-          tag: post.meta_keywords?.split(",")[0] ?? (isFa ? "ژورنال" : "Journal"),
-          date: new Date(post.created_at).toLocaleDateString(language === "fa" ? "fa-IR" : "en-US"),
-        }))
-      : journal[language];
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
@@ -293,7 +272,7 @@ export default async function Home() {
           </a>
         </div>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          {featuredProducts.map((product) => (
+          {products[language].map((product) => (
             <div key={product.title} className="surface rounded-3xl p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{product.title}</h3>
@@ -390,7 +369,7 @@ export default async function Home() {
           </a>
         </div>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          {latestJournal.map((entry) => (
+          {journal[language].map((entry) => (
             <article key={entry.title} className="surface rounded-3xl p-6">
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
                 {entry.tag}

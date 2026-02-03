@@ -3,7 +3,6 @@ import { Playfair_Display, Vazirmatn } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import { SettingsProvider } from "@/components/SettingsProvider";
-import { getServerSettings } from "@/lib/server-settings";
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
@@ -53,7 +52,7 @@ export default async function RootLayout({
 }>) {
   const { language, theme } = await getServerSettings();
   return (
-    <html lang={language} dir={language === "fa" ? "rtl" : "ltr"} data-theme={theme} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body
         className={`${vazirmatn.variable} ${playfair.variable} bg-[var(--background)] text-[var(--foreground)] antialiased`}
       >

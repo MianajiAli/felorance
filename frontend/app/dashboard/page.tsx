@@ -1,33 +1,24 @@
+"use client";
+
 import Link from "next/link";
-import { getOrders, getPayments } from "@/lib/api";
-import { getAccessToken } from "@/lib/server-auth";
-import { getServerSettings } from "@/lib/server-settings";
+import { useSettings } from "@/components/SettingsProvider";
 
-export default async function DashboardPage() {
-  const { language } = await getServerSettings();
+const cards = {
+  fa: [
+    { title: "سفارش‌های فعال", value: "۲", link: "/orders" },
+    { title: "لیست علاقه‌مندی", value: "۸", link: "/shop" },
+    { title: "روش‌های پرداخت", value: "۲", link: "/payments" },
+  ],
+  en: [
+    { title: "Active orders", value: "2", link: "/orders" },
+    { title: "Wishlist items", value: "8", link: "/shop" },
+    { title: "Payment methods", value: "2", link: "/payments" },
+  ],
+};
+
+export default function DashboardPage() {
+  const { language } = useSettings();
   const isFa = language === "fa";
-  const token = await getAccessToken();
-  const [orders, payments] = token
-    ? await Promise.all([getOrders(token).catch(() => []), getPayments(token).catch(() => [])])
-    : [[], []];
-
-  const cards = [
-    {
-      title: isFa ? "سفارش‌های فعال" : "Active orders",
-      value: orders.filter((order) => order.status !== "delivered").length.toString(),
-      link: "/orders",
-    },
-    {
-      title: isFa ? "روش‌های پرداخت" : "Payment methods",
-      value: payments.length.toString(),
-      link: "/payments",
-    },
-    {
-      title: isFa ? "محصولات" : "Shop items",
-      value: "—",
-      link: "/shop",
-    },
-  ];
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -39,7 +30,7 @@ export default async function DashboardPage() {
           {isFa ? "مرکز مدیریت حساب" : "Account command center"}
         </h1>
         <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {cards.map((card) => (
+          {cards[language].map((card) => (
             <Link key={card.title} href={card.link} className="surface-muted rounded-2xl p-6">
               <p className="text-xs uppercase tracking-wide text-muted">{card.title}</p>
               <p className="mt-3 text-2xl font-semibold">{card.value}</p>

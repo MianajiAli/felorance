@@ -1,12 +1,21 @@
-import { formatPrice, getOrders } from "@/lib/api";
-import { getAccessToken } from "@/lib/server-auth";
-import { getServerSettings } from "@/lib/server-settings";
+"use client";
 
-export default async function OrdersPage() {
-  const { language } = await getServerSettings();
+import { useSettings } from "@/components/SettingsProvider";
+
+const orders = {
+  fa: [
+    { id: "FX-2390", status: "در مسیر", total: "۴٫۱۸۰٫۰۰۰ تومان" },
+    { id: "FX-2384", status: "تحویل شد", total: "۲٫۶۸۰٫۰۰۰ تومان" },
+  ],
+  en: [
+    { id: "FX-2390", status: "In transit", total: "$418" },
+    { id: "FX-2384", status: "Delivered", total: "$268" },
+  ],
+};
+
+export default function OrdersPage() {
+  const { language } = useSettings();
   const isFa = language === "fa";
-  const token = await getAccessToken();
-  const orders = token ? await getOrders(token).catch(() => []) : [];
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -15,27 +24,17 @@ export default async function OrdersPage() {
         <p className="mt-3 text-sm text-muted">
           {isFa ? "تاریخچه سفارش و وضعیت ارسال." : "Order history and delivery status."}
         </p>
-        {!token ? (
-          <div className="mt-6 rounded-2xl border border-subtle bg-[var(--surface-muted)] p-6 text-sm text-muted">
-            {isFa ? "برای مشاهده سفارش‌ها وارد شوید." : "Please sign in to view your orders."}
-          </div>
-        ) : orders.length ? (
-          <div className="mt-6 space-y-4">
-            {orders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between rounded-2xl border border-subtle bg-[var(--surface-muted)] p-4">
-                <div>
-                  <p className="text-sm font-semibold">{isFa ? "سفارش" : "Order"} {order.order_number}</p>
-                  <p className="text-xs text-muted">{order.status}</p>
-                </div>
-                <p className="text-sm font-semibold">{formatPrice(order.total, language)}</p>
+        <div className="mt-6 space-y-4">
+          {orders[language].map((order) => (
+            <div key={order.id} className="flex items-center justify-between rounded-2xl border border-subtle bg-[var(--surface-muted)] p-4">
+              <div>
+                <p className="text-sm font-semibold">{isFa ? "سفارش" : "Order"} {order.id}</p>
+                <p className="text-xs text-muted">{order.status}</p>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-subtle bg-[var(--surface-muted)] p-6 text-sm text-muted">
-            {isFa ? "هنوز سفارشی ثبت نشده است." : "No orders yet."}
-          </div>
-        )}
+              <p className="text-sm font-semibold">{order.total}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </main>
   );

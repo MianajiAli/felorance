@@ -1,13 +1,22 @@
-import Link from "next/link";
-import { formatPrice, getCart } from "@/lib/api";
-import { getAccessToken } from "@/lib/server-auth";
-import { getServerSettings } from "@/lib/server-settings";
+"use client";
 
-export default async function CartPage() {
-  const { language } = await getServerSettings();
+import Link from "next/link";
+import { useSettings } from "@/components/SettingsProvider";
+
+const items = {
+  fa: [
+    { name: "گوشواره لونا", qty: 1, price: "۵٫۹۰۰٫۰۰۰ تومان" },
+    { name: "زنجیر اکلیپس", qty: 1, price: "۸٫۴۰۰٫۰۰۰ تومان" },
+  ],
+  en: [
+    { name: "Luna Drop Earrings", qty: 1, price: "$148" },
+    { name: "Eclipse Chain", qty: 1, price: "$218" },
+  ],
+};
+
+export default function CartPage() {
+  const { language } = useSettings();
   const isFa = language === "fa";
-  const token = await getAccessToken();
-  const cart = token ? await getCart(token).catch(() => null) : null;
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -16,29 +25,17 @@ export default async function CartPage() {
         <p className="mt-3 text-sm text-muted">
           {isFa ? "سفارش خود را قبل از پرداخت مرور کنید." : "Review your order before checkout."}
         </p>
-        {!token ? (
-          <div className="mt-6 rounded-2xl border border-subtle bg-[var(--surface-muted)] p-6 text-sm text-muted">
-            {isFa ? "برای مشاهده سبد خرید وارد شوید." : "Please sign in to view your cart."}
-          </div>
-        ) : cart?.items?.length ? (
-          <div className="mt-6 space-y-4">
-            {cart.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-2xl border border-subtle bg-[var(--surface-muted)] p-4">
-                <div>
-                  <p className="text-sm font-semibold">{item.product.name}</p>
-                  <p className="text-xs text-muted">
-                    {isFa ? "تعداد" : "Qty"}: {item.quantity}
-                  </p>
-                </div>
-                <p className="text-sm font-semibold">{formatPrice(item.subtotal, language, item.product.currency)}</p>
+        <div className="mt-6 space-y-4">
+          {items[language].map((item) => (
+            <div key={item.name} className="flex items-center justify-between rounded-2xl border border-subtle bg-[var(--surface-muted)] p-4">
+              <div>
+                <p className="text-sm font-semibold">{item.name}</p>
+                <p className="text-xs text-muted">{isFa ? "تعداد" : "Qty"}: {item.qty}</p>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-subtle bg-[var(--surface-muted)] p-6 text-sm text-muted">
-            {isFa ? "سبد خرید شما خالی است." : "Your cart is empty."}
-          </div>
-        )}
+              <p className="text-sm font-semibold">{item.price}</p>
+            </div>
+          ))}
+        </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/payments"
