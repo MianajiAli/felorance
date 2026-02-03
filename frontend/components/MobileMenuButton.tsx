@@ -1,65 +1,77 @@
-// MobileMenuButton.tsx (Client Component)
 "use client";
-import React, { useState } from "react";
 
-// 1. Define the TypeScript interface for our navigation items
+import Link from "next/link";
+import { useState } from "react";
+import type { Locale, ThemeMode } from "@/lib/i18n";
+import LocaleToggle from "./LocaleToggle";
+import ThemeToggle from "./ThemeToggle";
+
 interface NavItem {
-  title: string;
-  english_title: string;
+  label: string;
   href: string;
 }
 
-// Props interface for the mobile menu button and content
 interface MobileMenuProps {
   navItems: NavItem[];
+  locale: Locale;
+  theme: ThemeMode;
 }
 
-const MobileMenuButton: React.FC<MobileMenuProps> = ({ navItems }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+const MobileMenuButton = ({ navItems, locale, theme }: MobileMenuProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isRtl = locale === "fa";
 
   return (
-    <>
-      {/* Mobile Menu Button (Hamburger) */}
+    <div className="md:hidden">
       <button
         type="button"
-        className="md:hidden p-2 text-gray-700 hover:text-gray-900 rounded-full hover:bg-gray-100 transition duration-150"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200"
+        aria-expanded={isOpen}
         aria-controls="mobile-menu"
-        aria-expanded={isMobileMenuOpen}
-        onClick={toggleMobileMenu}
+        onClick={() => setIsOpen((prev) => !prev)}
       >
-        <span className="sr-only">باز کردن منوی اصلی</span>
-        {isMobileMenuOpen ? (
-          <span className="text-xl">❌</span> // Placeholder for Close Icon
-        ) : (
-          <span className="text-xl">☰</span> // Placeholder for Hamburger Icon
-        )}
+        <span className="sr-only">Toggle navigation</span>
+        <span className="text-lg">{isOpen ? "✕" : "☰"}</span>
       </button>
 
-      {/* Mobile Menu Content - Toggled based on state */}
       <div
-        className={`absolute top-20 left-0 w-full md:hidden ${
-          isMobileMenuOpen ? "block" : "hidden"
-        }`}
         id="mobile-menu"
+        className={`absolute left-0 right-0 top-full mt-4 ${isOpen ? "block" : "hidden"}`}
       >
-        <div className="px-4 pt-2 pb-3 space-y-1 border-t bg-white shadow-lg">
-          {navItems.map((item) => (
-            <a
-              key={`mobile-${item.href}`}
-              href={item.href}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-200 text-right"
-              onClick={toggleMobileMenu} // Close menu on click
+        <div className="mx-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+          <nav className="flex flex-col gap-4 text-sm font-medium text-slate-700 dark:text-slate-200">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="transition hover:text-slate-900 dark:hover:text-white"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-6 grid gap-3">
+            <LocaleToggle locale={locale} />
+            <ThemeToggle initialTheme={theme} />
+            <Link
+              href="/auth/sign-in"
+              className="rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+              onClick={() => setIsOpen(false)}
             >
-              {item.title}
-            </a>
-          ))}
+              {isRtl ? "ورود" : "Sign in"}
+            </Link>
+            <Link
+              href="/auth/sign-up"
+              className="rounded-full bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
+              onClick={() => setIsOpen(false)}
+            >
+              {isRtl ? "ثبت نام" : "Create account"}
+            </Link>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
