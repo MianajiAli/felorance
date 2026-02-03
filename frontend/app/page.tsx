@@ -136,7 +136,7 @@ const journal = {
 };
 
 export default async function Home() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
   const [apiProducts, apiPosts] = await Promise.all([
     getProducts().catch(() => []),

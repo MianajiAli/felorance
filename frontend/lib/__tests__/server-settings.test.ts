@@ -13,8 +13,8 @@ vi.mock("next/headers", () => ({
 import { getServerSettings } from "@/lib/server-settings";
 
 describe("getServerSettings", () => {
-  it("reads language and theme from cookies", () => {
-    const settings = getServerSettings();
+  it("reads language and theme from cookies", async () => {
+    const settings = await getServerSettings();
     expect(settings.language).toBe("en");
     expect(settings.theme).toBe("dark");
   });

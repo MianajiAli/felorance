@@ -46,12 +46,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { language, theme } = getServerSettings();
+  const { language, theme } = await getServerSettings();
   return (
     <html lang={language} dir={language === "fa" ? "rtl" : "ltr"} data-theme={theme} suppressHydrationWarning>
       <body

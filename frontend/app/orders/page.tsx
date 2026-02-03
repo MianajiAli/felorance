@@ -3,9 +3,9 @@ import { getAccessToken } from "@/lib/server-auth";
 import { getServerSettings } from "@/lib/server-settings";
 
 export default async function OrdersPage() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
-  const token = getAccessToken();
+  const token = await getAccessToken();
   const orders = token ? await getOrders(token).catch(() => []) : [];
 
   return (

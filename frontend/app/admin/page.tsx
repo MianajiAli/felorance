@@ -3,9 +3,9 @@ import { getAccessToken } from "@/lib/server-auth";
 import { getServerSettings } from "@/lib/server-settings";
 
 export default async function AdminPage() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
-  const token = getAccessToken();
+  const token = await getAccessToken();
   const user = token ? await getCurrentUser(token) : null;
   const isStaff = Boolean(user?.is_staff);
 

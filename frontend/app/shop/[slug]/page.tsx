@@ -4,7 +4,7 @@ import { formatPrice, getProduct } from "@/lib/api";
 import { getServerSettings } from "@/lib/server-settings";
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
   const product = await getProduct(params.slug);
 

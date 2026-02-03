@@ -3,7 +3,7 @@ import { getProducts, formatPrice } from "@/lib/api";
 import { getServerSettings } from "@/lib/server-settings";
 
 export default async function ShopPage() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
   const products = await getProducts().catch(() => []);
 

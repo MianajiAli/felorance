@@ -8,7 +8,7 @@ const excerpt = (content: string) => {
 };
 
 export default async function BlogPage() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
   const posts = await getPosts().catch(() => []);
 

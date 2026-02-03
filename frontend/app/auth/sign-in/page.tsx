@@ -1,8 +1,8 @@
 import SignInForm from "@/components/auth/SignInForm";
 import { getServerSettings } from "@/lib/server-settings";
 
-export default function SignInPage() {
-  const { language } = getServerSettings();
+export default async function SignInPage() {
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
 
   return (

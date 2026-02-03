@@ -4,9 +4,9 @@ import { getAccessToken } from "@/lib/server-auth";
 import { getServerSettings } from "@/lib/server-settings";
 
 export default async function CartPage() {
-  const { language } = getServerSettings();
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
-  const token = getAccessToken();
+  const token = await getAccessToken();
   const cart = token ? await getCart(token).catch(() => null) : null;
 
   return (

@@ -1,8 +1,8 @@
 import SignUpForm from "@/components/auth/SignUpForm";
 import { getServerSettings } from "@/lib/server-settings";
 
-export default function SignUpPage() {
-  const { language } = getServerSettings();
+export default async function SignUpPage() {
+  const { language } = await getServerSettings();
   const isFa = language === "fa";
 
   return (
